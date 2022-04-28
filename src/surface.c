@@ -1,4 +1,4 @@
-/* sftwrend.c
+/* surface.c
  *
  * Created by George Watson on 26/11/2017.
  * Copyright © 2013-2021 George Watson. All rights reserved.
@@ -25,7 +25,15 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "sftwrend.h"
+#include "surface.h"
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdarg.h>
+#include <string.h>
+#include <math.h>
+#include <time.h>
+#include <ctype.h>
 
 #if defined(__EMSCRIPTEN__)
 #include "emscripten.h"

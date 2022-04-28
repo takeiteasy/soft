@@ -1,4 +1,4 @@
-/* sftwrend.h
+/* surface.h
  *
  * Created by George Watson on 26/11/2017.
  * Copyright © 2013-2021 George Watson. All rights reserved.
@@ -25,27 +25,26 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef sftwrend_h
-#define sftwrend_h
+#ifndef surface_h
+#define surface_h
 #if defined(__cplusplus)
 extern "C" {
 #endif
 
 #if defined(_MSC_VER)
+#if !defined(bool)
 #define bool int
+#endif
+#if !defined(true)
 #define true 1
+#endif
+#if !defined(false)
 #define false 0
+#endif
 #else
 #include <stdbool.h>
 #endif
 #include <stdarg.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdarg.h>
-#include <string.h>
-#include <math.h>
-#include <time.h>
-#include <ctype.h>
 
 /*!
  * @discussion Convert RGBA to packed integer
@@ -442,4 +441,4 @@ void surface_tri(struct surface_t *s, int x0, int y0, int x1, int y1, int x2, in
 #if defined(__cplusplus)
 }
 #endif
-#endif // sftwrend_h
+#endif // surface_h
