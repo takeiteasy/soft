@@ -1,22 +1,25 @@
 # soft
 Simple to use software rendering library with Window handling for multiple platforms.
 
+**NOTE**: While a few platforms are _supported_, the main platform is actually Mac (since that is what I used). The other platforms are somewhat less tested.
+
 ## TODO (no order)
 - [X] ~~Implement backend for Mac~~
 - [X] ~~Implement backend for Windows~~
-- [X] ~~Implement backend for X11~~
 - [X] ~~Implement backend for Emscripten~~
-- [ ] Major API refactor (inconsistent naming)
-- [ ] Language bindings (include/soft.i placeholder)
-- [ ] Make Makefile
-- [ ] Make some tests
+- [ ] Implement backend for X11
 - [ ] Implement backend for RPi
 - [ ] Implement backend for Wayland
 - [ ] Implement backend for Sixel
 - [ ] Implement backend for BSD
+- [ ] Major API refactor (inconsistent naming)
+- [ ] Language bindings (include/soft.i placeholder)
+- [ ] Make Makefile
+- [ ] Make some tests
 
 ## LICENSE
-```Copyright (c) 2022 George Watson, All rights reserved.
+```
+Copyright (c) 2022 George Watson, All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are met:
@@ -38,4 +41,5 @@ DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
 SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
 CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.```
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+```

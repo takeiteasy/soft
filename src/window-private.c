@@ -6,10 +6,8 @@
 #include <math.h>
 #include <time.h>
 #include <ctype.h>
-
-#if defined(__EMSCRIPTEN__) || defined(EMSCRIPTEN)
-#define WINDOW_EMCC
-#include <emscripten/emscripten.h>
+#if !defined(WINDOW_WINDOWS)
+#include <unistd.h>
 #endif
   
 #if defined(__gnu_linux__) || defined(__linux__) || defined(__unix__)
@@ -20,14 +18,6 @@
 #define WINDOW_WINDOWS
 #else
 #define WINDOW_NO_WINDOW
-#endif
-
-#if defined(WINDOW_WINDOWS)
-#define NOMINMAX
-#define WIN32_LEAN_AND_MEAN
-#include <windows.h>
-#else
-#include <unistd.h>
 #endif
 
 #if defined(WINDOW_MALLOC) && defined(WINDOW_FREE) && (defined(WINDOW_REALLOC) || defined(WINDOW_REALLOC_SIZED))
