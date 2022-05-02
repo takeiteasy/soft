@@ -23,8 +23,8 @@ struct nix_window_t {
   Cursor cursor;
   bool mouse_inside, cursor_locked, cursor_vis, closed;
   int depth, cursor_lx, cursor_ly;
-  struct surface_t scaler;
-  struct window_t *parent;
+  Surface scaler;
+  Window *parent;
 };
 
 static void close_nix_window(struct nix_window_t *w) {
@@ -283,7 +283,7 @@ struct Hints {
   unsigned long status;
 };
 
-bool window(struct window_t *s, const char *t, int w, int h, short flags) {
+bool NewWindow(Window *s, const char *t, int w, int h, short flags) {
   if (!keycodes_init) {
     if (!(display = XOpenDisplay(NULL))) {
       WINDOW_ERROR(NIX_WINDOW_CREATION_FAILED, "XOpenDisplay() failed");
@@ -425,7 +425,7 @@ bool window(struct window_t *s, const char *t, int w, int h, short flags) {
   get_cursor_pos(&win_data->cursor_lx, &win_data->cursor_ly);
   win_data->img = XCreateImage(display, CopyFromParent, depth, ZPixmap, 0, NULL, w, h, 32, w * 4);
   win_data->depth = depth;
-  memset(&win_data->scaler, 0, sizeof(struct surface_t));
+  memset(&win_data->scaler, 0, sizeof(Surface));
   win_data->closed = false;
 
   windows = window_push(windows, win_data);
@@ -438,16 +438,16 @@ bool window(struct window_t *s, const char *t, int w, int h, short flags) {
   return true;
 }
 
-void window_icon(struct window_t *w, struct surface_t *b) {
+void SetWindowIcon(Window *w, Surface *b) {
   return;
 }
 
-void window_title(struct window_t *w, const char *t) {
+void SetWindowTitle(Window *w, const char *t) {
   struct nix_window_t *win = (struct nix_window_t*)w->window;
   XStoreName(display, win->window, t);
 }
 
-void window_position(struct window_t *w, int *x, int *y) {
+void GetWindowPosition(Window *w, int *x, int *y) {
   struct nix_window_t *win = (struct nix_window_t*)w->window;
   static int wx, wy;
   static XWindowAttributes xwa;
@@ -460,30 +460,30 @@ void window_position(struct window_t *w, int *x, int *y) {
     *y = wy - xwa.y;
 }
 
-void screen_size(struct window_t *s, int *w, int *h) {
+void GetScreenSize(Window *s, int *w, int *h) {
   if (w)
     *w = DisplayWidth(display, screen);
   if (h)
     *h = DisplayHeight(display, screen);
 }
 
-void window_destroy(struct window_t *w) {
+void DestroyWindow(Window *w) {
   struct nix_window_t *win = (struct nix_window_t*)w->window;
   close_nix_window(win);
   WINDOW_SAFE_FREE(win);
   w->window = NULL;
 }
 
-bool closed(struct window_t *w) {
+bool IsWindowClosed(Window *w) {
   return ((struct nix_window_t*)w->window)->closed;
 }
 
-bool closed_va(int n, ...) {
+bool AreWindowsClosed(int n, ...) {
   va_list args;
   va_start(args, n);
   bool ret = true;
   for (int i = 0; i < n; ++i) {
-    struct window_t *w = va_arg(args, struct window_t*);
+    Window *w = va_arg(args, Window*);
     if (!((struct nix_window_t*)w->window)->closed) {
       ret = false;
       break;
@@ -493,35 +493,35 @@ bool closed_va(int n, ...) {
   return ret;
 }
 
-bool closed_all() {
+bool AreAllWindowsClosed() {
   return windows == NULL;
 }
 
-void cursor_lock(struct window_t *w, bool lock) {
+void ToggleCursorLock(Window *w, bool lock) {
   return;
 }
 
-void cursor_visible(struct window_t *w, bool visible) {
+void ToggleCursorVisiblity(Window *w, bool visible) {
   return;
 }
 
-void cursor_icon(struct window_t *w, enum cursor_type type) {
+void SetCursorIcon(Window *w, Cursor type) {
   return;
 }
 
-void cursor_icon_custom(struct window_t *w, struct surface_t *b) {
+void SetCustomCursorIcon(Window *w, Surface *b) {
   return;
 }
 
-void cursor_pos(int *x, int *y) {
+void GetCursorPosition(int *x, int *y) {
   get_cursor_pos(x, y);
 }
 
-void cursor_set_pos(int x, int y) {
+void SetCursorPosition(int x, int y) {
   return;
 }
 
-struct window_t *event_window(Window w) {
+Window *event_window(Window w) {
   struct window_node_t *cursor = windows;
   while (cursor) {
     if (cursor->data->window == w)
@@ -531,9 +531,9 @@ struct window_t *event_window(Window w) {
   return NULL;
 }
 
-void events() {
+void PollEvents() {
   static XEvent e;
-  static struct window_t *e_window = NULL;
+  static Window *e_window = NULL;
   static struct nix_window_t *e_data = NULL;
   while (XPending(display)) {
     XNextEvent(display, &e);
@@ -553,11 +553,11 @@ void events() {
       }
       case ButtonPress:
       case ButtonRelease:
-        switch (e.xbutton.button) {
+        switch (e.xbutton.Button) {
           case Button1:
           case Button2:
           case Button3:
-            CBCALL(mouse_button_callback, (enum button)e.xbutton.button, translate_mod(e.xkey.state), e.type == ButtonPress);
+            CBCALL(mouse_button_callback, (Button)e.xbutton.Button, translate_mod(e.xkey.state), e.type == ButtonPress);
             break;
           case Button4:
             CBCALL(scroll_callback, translate_mod(e.xkey.state), 0.f, 1.f);
@@ -572,7 +572,7 @@ void events() {
             CBCALL(scroll_callback, translate_mod(e.xkey.state), -1.f, 0.f);
             break;
           default:
-            CBCALL(mouse_button_callback, (enum button)(e.xbutton.button - 4), translate_mod(e.xkey.state), e.type == ButtonPress);
+            CBCALL(mouse_button_callback, (Button)(e.xbutton.Button - 4), translate_mod(e.xkey.state), e.type == ButtonPress);
             break;
         }
         break;
@@ -624,7 +624,7 @@ void events() {
   }
 }
 
-void flush(struct window_t *w, struct surface_t *b) {
+void Flush(Window *w, Surface *b) {
   if (!w)
     return;
   struct nix_window_t *tmp = (struct nix_window_t*)w->window;
@@ -639,7 +639,7 @@ void flush(struct window_t *w, struct surface_t *b) {
   XFlush(display);
 }
 
-void release() {
+void CloseAllWindows() {
   struct window_node_t *tmp = NULL, *cursor = windows;
   while (cursor) {
     tmp = cursor->next;

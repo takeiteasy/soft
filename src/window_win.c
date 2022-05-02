@@ -13,7 +13,7 @@ struct win32_window_t {
   HCURSOR cursor;
   int cursor_lx, cursor_ly;
   bool mouse_inside, cursor_vis, cursor_locked, closed, refresh_tme, custom_icon, custom_cursor;
-  struct surface_t *buffer;
+  Surface *buffer;
 };
 
 static void close_win32_window(struct win32_window_t *window) {
@@ -89,8 +89,8 @@ static int translate_key(WPARAM wParam, LPARAM lParam) {
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {
   static struct win32_window_t *e_data = NULL;
-  static struct window_t *e_window = NULL;
-  e_window = (struct window_t*)GetWindowLongPtr(hWnd, GWLP_USERDATA);
+  static Window *e_window = NULL;
+  e_window = (Window*)GetWindowLongPtr(hWnd, GWLP_USERDATA);
   if (!e_window || !e_window->window)
     return DefWindowProc(hWnd, message, wParam, lParam);
   e_data = (struct win32_window_t*)e_window->window;
@@ -160,24 +160,24 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
       case WM_LBUTTONDOWN:
         m_action = 1;
       case WM_LBUTTONUP:
-        m_button = enum button_1;
+        m_button = button_1;
         break;
       case WM_RBUTTONDOWN:
         m_action = 1;
       case WM_RBUTTONUP:
-        m_button = enum button_2;
+        m_button = button_2;
         break;
       case WM_MBUTTONDOWN:
         m_action = 1;
       case WM_MBUTTONUP:
-        m_button = enum button_3;
+        m_button = button_3;
         break;
       default:
-        m_button = (GET_XBUTTON_WPARAM(wParam) == XBUTTON1 ? enum button_5 : enum button_6);
+        m_button = (GET_XBUTTON_WPARAM(wParam) == XBUTTON1 ? button_5 : button_6);
         if (message == WM_XBUTTONDOWN)
           m_action = 1;
       }
-      CBCALL(mouse_button_callback, (enum button)m_button, translate_mod(), m_action);
+      CBCALL(mouse_button_callback, (Button)m_button, translate_mod(), m_action);
       break;
     }
     case WM_MOUSEWHEEL:
@@ -238,14 +238,14 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
   return DefWindowProc(hWnd, message, wParam, lParam);
 }
 
-static void windows_error(enum window_error err, const char *msg) {
+static void windows_error(WindowError err, const char *msg) {
   DWORD id = GetLastError();
   LPSTR buf = NULL;
   FormatMessageA(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, NULL, err, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPSTR)&buf, 0, NULL);
   WINDOW_ERROR(err, "%s (%d): %s", msg, id, buf);
 }
 
-bool window(struct window_t *s, const char *t, int w, int h, short flags) {
+bool NewWindow(Window *s, const char *t, int w, int h, short flags) {
   if (!keycodes_init) {
     memset(keycodes, -1, sizeof(keycodes));
     
@@ -381,12 +381,12 @@ bool window(struct window_t *s, const char *t, int w, int h, short flags) {
   }
 
   RECT rect = {0};
-  long window_flags = WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX | WS_MAXIMIZEBOX;
+  long WindowFlag = WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX | WS_MAXIMIZEBOX;
   if (flags & FULLSCREEN) {
     flags = FULLSCREEN;
     rect.right = GetSystemMetrics(SM_CXSCREEN);
     rect.bottom = GetSystemMetrics(SM_CYSCREEN);
-    window_flags = WS_POPUP & ~(WS_CAPTION | WS_THICKFRAME | WS_MINIMIZE | WS_MAXIMIZE | WS_SYSMENU);
+    WindowFlag = WS_POPUP & ~(WS_CAPTION | WS_THICKFRAME | WS_MINIMIZE | WS_MAXIMIZE | WS_SYSMENU);
 
     DEVMODE settings = { 0 };
     EnumDisplaySettings(0, 0, &settings);
@@ -400,18 +400,18 @@ bool window(struct window_t *s, const char *t, int w, int h, short flags) {
   }
 
   if (flags & BORDERLESS)
-    window_flags = WS_POPUP;
+    WindowFlag = WS_POPUP;
   if (flags & RESIZABLE)
-    window_flags |= WS_MAXIMIZEBOX | WS_SIZEBOX;
+    WindowFlag |= WS_MAXIMIZEBOX | WS_SIZEBOX;
   if (flags & FULLSCREEN_DESKTOP) {
-    window_flags = WS_OVERLAPPEDWINDOW;
+    WindowFlag = WS_OVERLAPPEDWINDOW;
 
     int width = GetSystemMetrics(SM_CXFULLSCREEN);
     int height = GetSystemMetrics(SM_CYFULLSCREEN);
 
     rect.right = width;
     rect.bottom = height;
-    AdjustWindowRect(&rect, window_flags, 0);
+    AdjustWindowRect(&rect, WindowFlag, 0);
     if (rect.left < 0) {
       width += rect.left * 2;
       rect.right += rect.left;
@@ -427,7 +427,7 @@ bool window(struct window_t *s, const char *t, int w, int h, short flags) {
     rect.right = w;
     rect.bottom = h;
 
-    AdjustWindowRect(&rect, window_flags, 0);
+    AdjustWindowRect(&rect, WindowFlag, 0);
 
     rect.right -= rect.left;
     rect.bottom -= rect.top;
@@ -446,7 +446,7 @@ bool window(struct window_t *s, const char *t, int w, int h, short flags) {
     return false;
   }
 
-  if (!(win_data->hwnd = CreateWindowEx(0, t, t, window_flags, rect.left, rect.top, rect.right, rect.bottom, 0, 0, 0, 0))) {
+  if (!(win_data->hwnd = CreateWindowEx(0, t, t, WindowFlag, rect.left, rect.top, rect.right, rect.bottom, 0, 0, 0, 0))) {
     windows_error(WIN_WINDOW_CREATION_FAILED, "CreateWindowEx() failed");
     return false;
   }
@@ -510,7 +510,7 @@ bool window(struct window_t *s, const char *t, int w, int h, short flags) {
   return true;
 }
 
-void window_icon(struct window_t *s, struct surface_t *b) {
+void SetWindowIcon(Window *s, Surface *b) {
   struct win32_window_t *win = (struct win32_window_t*)s->window;
   HBITMAP hbmp = NULL, bmp_mask = NULL;
 
@@ -544,11 +544,11 @@ FAILED:
   SendMessage(GetWindow(win->hwnd, GW_OWNER), WM_SETICON, ICON_BIG, win->icon);
 }
 
-void window_title(struct window_t *s, const char *t) {
+void SetWindowTitle(Window *s, const char *t) {
   SetWindowTextA(((struct win32_window_t*)s->window)->hwnd, t);
 }
 
-void window_position(struct window_t *s, int *x, int * y) {
+void GetWindowPosition(Window *s, int *x, int * y) {
   static RECT rect = { 0 };
   GetWindowRect(((struct win32_window_t*)s->window)->hwnd, &rect);
   if (x)
@@ -557,30 +557,30 @@ void window_position(struct window_t *s, int *x, int * y) {
     *y = rect.top;
 }
 
-void screen_size(struct window_t *s, int *w, int *h) {
+void GetScreenSize(Window *s, int *w, int *h) {
   if (w)
     *w = GetSystemMetrics(SM_CXFULLSCREEN);
   if (h)
     *h = GetSystemMetrics(SM_CYFULLSCREEN);
 }
 
-void window_destroy(struct window_t *s) {
+void DestroyWindow(Window *s) {
   struct win32_window_t *win = (struct win32_window_t*)s->window;
   close_win32_window(win);
   WINDOW_SAFE_FREE(win);
   s->window = NULL;
 }
 
-bool closed(struct window_t *s) {
+bool IsWindowClosed(Window *s) {
   return ((struct win32_window_t*)s->window)->closed;
 }
 
-bool closed_va(int n, ...) {
+bool AreWindowsClosed(int n, ...) {
   va_list args;
   va_start(args, n);
   bool ret = true;
   for (int i = 0; i < n; ++i) {
-    struct window_t *w = va_arg(args, struct window_t*);
+    Window *w = va_arg(args, Window*);
     if (!((struct win32_window_t*)w->window)->closed) {
       ret = false;
       break;
@@ -590,11 +590,11 @@ bool closed_va(int n, ...) {
   return ret;
 }
 
-bool closed_all() {
+bool AreAllWindowsClosed() {
   return windows == NULL;
 }
 
-void cursor_lock(struct window_t *s, bool locked) {
+void ToggleCursorLock(Window *s, bool locked) {
   struct win32_window_t *win = (struct win32_window_t*)s->window;
   if (!s || !locked) {
     ClipCursor(NULL);
@@ -605,11 +605,11 @@ void cursor_lock(struct window_t *s, bool locked) {
   }
 }
 
-void cursor_visible(struct window_t *s, bool shown) {
+void ToggleCursorVisiblity(Window *s, bool shown) {
   ((struct win32_window_t*)s->window)->cursor_vis = shown;
 }
 
-void cursor_icon(struct window_t *s, enum cursor_type t) {
+void SetCursorIcon(Window *s, Cursor t) {
   HCURSOR tmp = NULL;
   switch (t) {
   default:
@@ -658,7 +658,7 @@ void cursor_icon(struct window_t *s, enum cursor_type t) {
   SetCursor(win->cursor);
 }
 
-void cursor_icon_custom(struct window_t *s, struct surface_t *b) {
+void SetCustomCursorIcon(Window *s, Surface *b) {
   struct win32_window_t *win = (struct win32_window_t*)s->window;
   HBITMAP hbmp = NULL, bmp_mask = NULL;
 
@@ -682,7 +682,7 @@ FAILED:
     DeleteObject(hbmp);
 
   if (!win->cursor) {
-    windows_error(WINDOW_ICON_FAILED, "cursor_icon_custom() failed");
+    windows_error(WINDOW_ICON_FAILED, "SetCustomCursorIcon() failed");
     win->icon = LoadCursor(NULL, IDC_ARROW);
     win->custom_cursor = false;
   } else
@@ -691,7 +691,7 @@ FAILED:
   SetCursor(win->cursor);
 }
 
-void cursor_pos(int *x, int *y) {
+void GetCursorPosition(int *x, int *y) {
   static POINT p;
   GetCursorPos(&p);
   if (x)
@@ -700,11 +700,11 @@ void cursor_pos(int *x, int *y) {
     *y = p.y;
 }
 
-void cursor_set_pos(int x, int y) {
+void SetCursorPosition(int x, int y) {
   SetCursorPos(x, y);
 }
 
-void events() {
+void PollEvents() {
   static MSG msg;
   ZeroMemory(&msg, sizeof(MSG));
   if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)) {
@@ -713,7 +713,7 @@ void events() {
   }
 }
 
-void flush(struct window_t *s, struct surface_t *b) {
+void Flush(Window *s, Surface *b) {
   if (!s)
     return;
   struct win32_window_t *tmp = (struct win32_window_t*)s->window;
@@ -724,7 +724,7 @@ void flush(struct window_t *s, struct surface_t *b) {
   SendMessage(tmp->hwnd, WM_PAINT, 0, 0);
 }
 
-void release() {
+void CloseAllWindows() {
   struct window_node_t *tmp = NULL, *cursor = windows;
   while (cursor) {
     tmp = cursor->next;

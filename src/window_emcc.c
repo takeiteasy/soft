@@ -9,21 +9,21 @@
 #include <emscripten.h>
 #include <emscripten/html5.h>
 
-static struct window_t *e_window = NULL;
+static Window *e_window = NULL;
 static int window_w, window_h, canvas_w, canvas_h, canvas_x, canvas_y, cursor_x, cursor_y;
 static bool mouse_in_canvas = true, fullscreen = false;
 
-static enum key_mod translate_mod(bool ctrl, bool shift, bool alt, bool meta) {
-  return (enum key_mod)((ctrl ? KB_MOD_CONTROL : 0) | (shift ? KB_MOD_SHIFT : 0) | (alt ? KB_MOD_ALT : 0) | (meta ? KB_MOD_SUPER : 0));
+static Mod translate_mod(bool ctrl, bool shift, bool alt, bool meta) {
+  return (Mod)((ctrl ? KB_MOD_CONTROL : 0) | (shift ? KB_MOD_SHIFT : 0) | (alt ? KB_MOD_ALT : 0) | (meta ? KB_MOD_SUPER : 0));
 }
 
-static enum key_sym translate_key(int key) {
+static Key translate_key(int key) {
   return (key > 222 || key < 8 ? KB_KEY_UNKNOWN : keycodes[key]);
 }
 
 static EM_BOOL key_callback(int type, const EmscriptenKeyboardEvent *e, void *user_data) {
-  static enum key_mod mod;
-  static enum key_sym sym;
+  static Mod mod;
+  static Key sym;
   mod = translate_mod(e->ctrlKey, e->shiftKey, e->altKey, e->metaKey);
   sym = translate_key(e->keyCode);
   CBCALL(keyboard_callback, sym, mod, (type == EMSCRIPTEN_EVENT_KEYDOWN));
@@ -59,11 +59,11 @@ static EM_BOOL mouse_callback(int type, const EmscriptenMouseEvent *e, void *use
   switch (type) {
     case EMSCRIPTEN_EVENT_MOUSEDOWN:
       if (mouse_in_canvas && e->buttons != 0)
-        CBCALL(mouse_button_callback, (enum button)(e->button + 1), translate_mod(e->ctrlKey, e->shiftKey, e->altKey, e->metaKey), true);
+        CBCALL(mouse_button_callback, (Button)(e->Button + 1), translate_mod(e->ctrlKey, e->shiftKey, e->altKey, e->metaKey), true);
       break;
     case EMSCRIPTEN_EVENT_MOUSEUP:
       if (mouse_in_canvas)
-        CBCALL(mouse_button_callback, (enum button)(e->button + 1), translate_mod(e->ctrlKey, e->shiftKey, e->altKey, e->metaKey), false);
+        CBCALL(mouse_button_callback, (Button)(e->Button + 1), translate_mod(e->ctrlKey, e->shiftKey, e->altKey, e->metaKey), false);
       break;
     case EMSCRIPTEN_EVENT_MOUSEMOVE:
       cursor_x = e->clientX;
@@ -127,7 +127,7 @@ static const char* beforeunload_callback(int type, const void *reserved, void *u
   return "Do you really want to leave the page?";
 }
 
-bool window(struct window_t *s, const char *t, int w, int h, short flags) {
+bool NewWindow(Window *s, const char *t, int w, int h, short flags) {
   if (e_window) {
 #pragma message WARN("TODO: window() handle error")
     return false;
@@ -284,7 +284,7 @@ bool window(struct window_t *s, const char *t, int w, int h, short flags) {
   EM_ASM(Module['noExitRuntime'] = true);
   
   if (t)
-    window_title(NULL, t);
+    SetWindowTitle(NULL, t);
   
   emscripten_set_canvas_element_size(WINDOW_CANVAS_ID, w, h);
   EMSCRIPTEN_FULLSCREEN_SCALE fs_scale = EMSCRIPTEN_FULLSCREEN_SCALE_DEFAULT;
@@ -315,47 +315,47 @@ bool window(struct window_t *s, const char *t, int w, int h, short flags) {
   return true;
 }
 
-void window_icon(struct window_t *_, struct surface_t *__) {
+void SetWindowIcon(Window *_, Surface *__) {
 #pragma message WARN("window_icon() unsupported on emscripten")
 }
 
-void window_title(struct window_t *_, const char *t) {
+void SetWindowTitle(Window *_, const char *t) {
   EM_ASM({
     setWindowTitle(UTF8ToString($0));
   }, t);
 }
 
-void window_position(struct window_t *_, int *x, int * y) {
+void GetWindowPosition(Window *_, int *x, int * y) {
   if (x)
     *x = canvas_x;
   if (y)
     *y = canvas_y;
 }
 
-void screen_size(struct window_t *_, int *w, int *h) {
+void GetScreenSize(Window *_, int *w, int *h) {
   if (w)
     *w = window_w;
   if (h)
     *h = window_h;
 }
 
-void window_destroy(struct window_t *s) {
-  memset(s, 0, sizeof(struct window_t));
+void DestroyWindow(Window *s) {
+  memset(s, 0, sizeof(Window));
 }
 
-bool closed(struct window_t *_) {
+bool IsWindowClosed(Window *_) {
   return false;
 }
 
-bool closed_va(int n, ...) {
+bool AreWindowsClosed(int n, ...) {
   return false;
 }
 
-bool closed_all() {
+bool AreAllWindowsClosed() {
   return false;
 }
 
-void cursor_lock(struct window_t *s, bool locked) {
+void ToggleCursorLock(Window *s, bool locked) {
 #pragma message WARN("cursor_lock() unsupported on emscripten")
   if (locked)
     emscripten_request_pointerlock(NULL, 1);
@@ -366,7 +366,7 @@ void cursor_lock(struct window_t *s, bool locked) {
 static const char *cursor = "default";
 static bool cursor_custom = false;
 
-void cursor_visible(struct window_t *s, bool show) {
+void ToggleCursorVisiblity(Window *s, bool show) {
   EM_ASM({
     if (Module['canvas']) {
       Module['canvas'].style['cursor'] = ($1 ? UTF8ToString($0) : 'none');
@@ -374,7 +374,7 @@ void cursor_visible(struct window_t *s, bool show) {
   }, cursor, show);
 }
 
-void cursor_icon(struct window_t *w, enum cursor_type t) {
+void SetCursorIcon(Window *w, Cursor t) {
   if (cursor_custom && cursor)
     WINDOW_SAFE_FREE(cursor);
   cursor_custom = false;
@@ -417,10 +417,10 @@ void cursor_icon(struct window_t *w, enum cursor_type t) {
       cursor = "pointer";
       break;
   }
-  cursor_visible(w, true);
+  ToggleCursorVisiblity(w, true);
 }
 
-void cursor_icon_custom(struct window_t *w, struct surface_t *b) {
+void SetCustomCursorIcon(Window *w, Surface *b) {
   if (cursor_custom && cursor)
     WINDOW_SAFE_FREE(cursor);
   
@@ -461,21 +461,21 @@ void cursor_icon_custom(struct window_t *w, struct surface_t *b) {
     return;
   }
   cursor_custom = true;
-  cursor_visible(w, true);
+  ToggleCursorVisiblity(w, true);
 }
 
-void cursor_pos(int *x, int *y) {
+void GetCursorPosition(int *x, int *y) {
   if (x)
     *x = cursor_x;
   if (y)
     *y = cursor_y;
 }
 
-void cursor_set_pos(int _, int __) {
+void SetCursorPosition(int _, int __) {
 #pragma message WARN("cursor_set_pos() unsupported on emscripten")
 }
 
-void events(void) {
+void PollEvents(void) {
 #if defined(WINDOW_DEBUG) && defined(WINDOW_EMCC_HTML)
   EM_ASM({
     stats.begin();
@@ -483,7 +483,7 @@ void events(void) {
 #endif
 }
 
-void flush(struct window_t *_, struct surface_t *b) {
+void Flush(Window *_, Surface *b) {
   EM_ASM({
     var w = $0;
     var h = $1;
@@ -513,6 +513,6 @@ void flush(struct window_t *_, struct surface_t *b) {
   }, b->w, b->h, b->buf);
 }
 
-void release(void) {
+void CloseAllWindows(void) {
   return;
 }

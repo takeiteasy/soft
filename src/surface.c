@@ -90,7 +90,7 @@ EXPORT int rgba_a(int c, unsigned char a) {
     return (c & ~0x00FF0000) | (a << 24);
 }
 
-EXPORT bool surface_create(struct surface_t *s, unsigned int w, unsigned int h) {
+EXPORT bool NewSurface(Surface *s, unsigned int w, unsigned int h) {
     s->w = w;
     s->h = h;
     size_t sz = w * h * sizeof(unsigned int) + 1;
@@ -99,75 +99,75 @@ EXPORT bool surface_create(struct surface_t *s, unsigned int w, unsigned int h) 
     return true;
 }
 
-EXPORT void surface_destroy(struct surface_t *s) {
+EXPORT void DestroySurface(Surface *s) {
     if (s->buf)
         free(s->buf);
-    memset(s, 0, sizeof(struct surface_t));
+    memset(s, 0, sizeof(Surface));
 }
 
-EXPORT void surface_fill(struct surface_t *s, int col) {
+EXPORT void Fill(Surface *s, int col) {
     for (int i = 0; i < s->w * s->h; ++i)
         s->buf[i] = col;
 }
 
-static inline void flood_fn(struct surface_t *s, int x, int y, int new, int old) {
-    if (new == old || surface_pget(s, x, y) != old)
+static inline void flood_fn(Surface *s, int x, int y, int new, int old) {
+    if (new == old || GetPixel(s, x, y) != old)
         return;
     
     int x1 = x;
-    while (x1 < s->w && surface_pget(s, x1, y) == old) {
-        surface_pset(s, x1, y, new);
+    while (x1 < s->w && GetPixel(s, x1, y) == old) {
+        SetPixel(s, x1, y, new);
         x1++;
     }
     
     x1 = x - 1;
-    while (x1 >= 0 && surface_pget(s, x1, y) == old) {
-        surface_pset(s, x1, y, new);
+    while (x1 >= 0 && GetPixel(s, x1, y) == old) {
+        SetPixel(s, x1, y, new);
         x1--;
     }
     
     x1 = x;
-    while (x1 < s->w && surface_pget(s, x1, y) == new) {
-        if(y > 0 && surface_pget(s, x1, y - 1) == old)
+    while (x1 < s->w && GetPixel(s, x1, y) == new) {
+        if(y > 0 && GetPixel(s, x1, y - 1) == old)
             flood_fn(s, x1, y - 1, new, old);
         x1++;
     }
     
     x1 = x - 1;
-    while(x1 >= 0 && surface_pget(s, x1, y) == new) {
-        if(y > 0 && surface_pget(s, x1, y - 1) == old)
+    while(x1 >= 0 && GetPixel(s, x1, y) == new) {
+        if(y > 0 && GetPixel(s, x1, y - 1) == old)
             flood_fn(s, x1, y - 1, new, old);
         x1--;
     }
     
     x1 = x;
-    while(x1 < s->w && surface_pget(s, x1, y) == new) {
-        if(y < s->h - 1 && surface_pget(s, x1, y + 1) == old)
+    while(x1 < s->w && GetPixel(s, x1, y) == new) {
+        if(y < s->h - 1 && GetPixel(s, x1, y + 1) == old)
             flood_fn(s, x1, y + 1, new, old);
         x1++;
     }
     
     x1 = x - 1;
-    while(x1 >= 0 && surface_pget(s, x1, y) == new) {
-        if(y < s->h - 1 && surface_pget(s, x1, y + 1) == old)
+    while(x1 >= 0 && GetPixel(s, x1, y) == new) {
+        if(y < s->h - 1 && GetPixel(s, x1, y + 1) == old)
             flood_fn(s, x1, y + 1, new, old);
         x1--;
     }
 }
 
-EXPORT void surface_flood(struct surface_t *s, int x, int y, int col) {
+EXPORT void Flood(Surface *s, int x, int y, int col) {
     if (x < 0 || y < 0 || x >= s->w || y >= s->h)
         return;
-    flood_fn(s, x, y, col, surface_pget(s, x, y));
+    flood_fn(s, x, y, col, GetPixel(s, x, y));
 }
 
-EXPORT void surface_cls(struct surface_t *s) {
+EXPORT void Clear(Surface *s) {
     memset(s->buf, 0, s->w * s->h * sizeof(int));
 }
 
 #define BLEND(c0, c1, a0, a1) (c0 * a0 / 255) + (c1 * a1 * (255 - a0) / 65025)
 
-EXPORT void surface_pset(struct surface_t *s, int x, int y, int c) {
+EXPORT void SetPixel(Surface *s, int x, int y, int c) {
     unsigned char a = a_channel(c);
     if (!a || x < 0 || y < 0 || x >= s->w || y >= s->h)
         return;
@@ -179,18 +179,18 @@ EXPORT void surface_pset(struct surface_t *s, int x, int y, int c) {
                                      a + (b * (255 - a) >> 8));
 }
 
-EXPORT int surface_pget(struct surface_t *s, int x, int y) {
+EXPORT int GetPixel(Surface *s, int x, int y) {
     return (x >= 0 && y >= 0 && x < s->w && y < s->h) ? s->buf[y * s->w + x] : 0;
 }
 
-EXPORT bool surface_paste(struct surface_t *dst, struct surface_t *src, int x, int y) {
+EXPORT bool Paste(Surface *dst, Surface *src, int x, int y) {
     int ox, oy, c;
     for (ox = 0; ox < src->w; ++ox) {
         for (oy = 0; oy < src->h; ++oy) {
             if (oy > dst->h)
                 break;
-            c = surface_pget(src, ox, oy);
-            surface_pset(dst, x + ox, y + oy, c);
+            c = GetPixel(src, ox, oy);
+            SetPixel(dst, x + ox, y + oy, c);
         }
         if (ox > dst->w)
             break;
@@ -198,14 +198,14 @@ EXPORT bool surface_paste(struct surface_t *dst, struct surface_t *src, int x, i
     return true;
 }
 
-EXPORT bool surface_clip_paste(struct surface_t *dst, struct surface_t *src, int x, int y, int rx, int ry, int rw, int rh) {
+EXPORT bool PasteClip(Surface *dst, Surface *src, int x, int y, int rx, int ry, int rw, int rh) {
     for (int ox = 0; ox < rw; ++ox)
         for (int oy = 0; oy < rh; ++oy)
-            surface_pset(dst, ox + x, oy + y, surface_pget(src, ox + rx, oy + ry));
+            SetPixel(dst, ox + x, oy + y, GetPixel(src, ox + rx, oy + ry));
     return true;
 }
 
-EXPORT bool surface_reset(struct surface_t *s, int nw, int nh) {
+EXPORT bool Reset(Surface *s, int nw, int nh) {
     size_t sz = nw * nh * sizeof(unsigned int) + 1;
     int *tmp = realloc(s->buf, sz);
     s->buf = tmp;
@@ -215,22 +215,22 @@ EXPORT bool surface_reset(struct surface_t *s, int nw, int nh) {
     return true;
 }
 
-EXPORT bool surface_copy(struct surface_t *a, struct surface_t *b) {
-    if (!surface_create(b, a->w, a->h))
+EXPORT bool Copy(Surface *a, Surface *b) {
+    if (!NewSurface(b, a->w, a->h))
         return false;
     memcpy(b->buf, a->buf, a->w * a->h * sizeof(unsigned int) + 1);
     return !!b->buf;
 }
 
-EXPORT void surface_passthru(struct surface_t *s, int (*fn)(int x, int y, int col)) {
+EXPORT void Passthru(Surface *s, int (*fn)(int x, int y, int col)) {
     int x, y;
     for (x = 0; x < s->w; ++x)
         for (y = 0; y < s->h; ++y)
-            s->buf[y * s->w + x] = fn(x, y, surface_pget(s, x, y));
+            s->buf[y * s->w + x] = fn(x, y, GetPixel(s, x, y));
 }
 
-EXPORT bool surface_resize(struct surface_t *a, int nw, int nh, struct surface_t *b) {
-    if (!surface_create(b, nw, nh))
+EXPORT bool Resize(Surface *a, int nw, int nh, Surface *b) {
+    if (!NewSurface(b, nw, nh))
         return false;
     
     int x_ratio = (int)((a->w << 16) / b->w) + 1;
@@ -258,7 +258,7 @@ EXPORT bool surface_resize(struct surface_t *a, int nw, int nh, struct surface_t
 #define __D2R(a) ((a) * __PI / 180.0)
 #define __R2D(a) ((a) * 180.0 / __PI)
 
-EXPORT bool surface_rotate(struct surface_t *a, float angle, struct surface_t *b) {
+EXPORT bool Rotate(Surface *a, float angle, Surface *b) {
     float theta = __D2R(angle);
     float c = cosf(theta), s = sinf(theta);
     float r[3][2] = {
@@ -277,7 +277,7 @@ EXPORT bool surface_rotate(struct surface_t *a, float angle, struct surface_t *b
     
     int dw = (int)ceil(fabsf(mm[1][0]) - mm[0][0]);
     int dh = (int)ceil(fabsf(mm[1][1]) - mm[0][1]);
-    if (!surface_create(b, dw, dh))
+    if (!NewSurface(b, dw, dh))
         return false;
     
     int x, y, sx, sy;
@@ -287,12 +287,12 @@ EXPORT bool surface_rotate(struct surface_t *a, float angle, struct surface_t *b
             sy = ((y + mm[0][1]) * c - (x + mm[0][0]) * s);
             if (sx < 0 || sx >= a->w || sy < 0 || sy >= a->h)
                 continue;
-            surface_pset(b, x, y, surface_pget(a, sx, sy));
+            SetPixel(b, x, y, GetPixel(a, sx, sy));
         }
     return true;
 }
 
-static inline void vline(struct surface_t *s, int x, int y0, int y1, int col) {
+static inline void vline(Surface *s, int x, int y0, int y1, int col) {
     if (y1 < y0) {
         y0 += y1;
         y1  = y0 - y1;
@@ -308,10 +308,10 @@ static inline void vline(struct surface_t *s, int x, int y0, int y1, int col) {
         y1 = s->h - 1;
     
     for(int y = y0; y <= y1; y++)
-        surface_pset(s, x, y, col);
+        SetPixel(s, x, y, col);
 }
 
-static inline void hline(struct surface_t *s, int y, int x0, int x1, int col) {
+static inline void hline(Surface *s, int y, int x0, int x1, int col) {
     if (x1 < x0) {
         x0 += x1;
         x1  = x0 - x1;
@@ -327,10 +327,10 @@ static inline void hline(struct surface_t *s, int y, int x0, int x1, int col) {
         x1 = s->w - 1;
     
     for(int x = x0; x <= x1; x++)
-        surface_pset(s, x, y, col);
+        SetPixel(s, x, y, col);
 }
 
-EXPORT void surface_line(struct surface_t *s, int x0, int y0, int x1, int y1, int col) {
+EXPORT void DrawLine(Surface *s, int x0, int y0, int x1, int y1, int col) {
     if (x0 == x1)
         vline(s, x0, y0, y1, col);
     if (y0 == y1)
@@ -339,20 +339,20 @@ EXPORT void surface_line(struct surface_t *s, int x0, int y0, int x1, int y1, in
     int dy = abs(y1 - y0), sy = y0 < y1 ? 1 : -1;
     int err = (dx > dy ? dx : -dy) / 2;
     
-    while (surface_pset(s, x0, y0, col), x0 != x1 || y0 != y1) {
+    while (SetPixel(s, x0, y0, col), x0 != x1 || y0 != y1) {
         int e2 = err;
         if (e2 > -dx) { err -= dy; x0 += sx; }
         if (e2 <  dy) { err += dx; y0 += sy; }
     }
 }
 
-EXPORT void surface_circle(struct surface_t *s, int xc, int yc, int r, int col, bool fill) {
+EXPORT void DrawCircle(Surface *s, int xc, int yc, int r, int col, bool fill) {
     int x = -r, y = 0, err = 2 - 2 * r; /* II. Quadrant */
     do {
-        surface_pset(s, xc - x, yc + y, col);    /*   I. Quadrant */
-        surface_pset(s, xc - y, yc - x, col);    /*  II. Quadrant */
-        surface_pset(s, xc + x, yc - y, col);    /* III. Quadrant */
-        surface_pset(s, xc + y, yc + x, col);    /*  IV. Quadrant */
+        SetPixel(s, xc - x, yc + y, col);    /*   I. Quadrant */
+        SetPixel(s, xc - y, yc - x, col);    /*  II. Quadrant */
+        SetPixel(s, xc + x, yc - y, col);    /* III. Quadrant */
+        SetPixel(s, xc + y, yc + x, col);    /*  IV. Quadrant */
         
         if (fill) {
             hline(s, yc - y, xc - x, xc + x, col);
@@ -367,7 +367,7 @@ EXPORT void surface_circle(struct surface_t *s, int xc, int yc, int r, int col, 
     } while (x < 0);
 }
 
-EXPORT void surface_rect(struct surface_t *s, int x, int y, int w, int h, int col, bool fill) {
+EXPORT void DrawRect(Surface *s, int x, int y, int w, int h, int col, bool fill) {
     if (x < 0) {
         w += x;
         x  = 0;
@@ -405,7 +405,7 @@ EXPORT void surface_rect(struct surface_t *s, int x, int y, int w, int h, int co
         b = temp; \
     } while(0)
 
-EXPORT void surface_tri(struct surface_t *s, int x0, int y0, int x1, int y1, int x2, int y2, int col, bool fill) {
+EXPORT void DrawTri(Surface *s, int x0, int y0, int x1, int y1, int x2, int y2, int col, bool fill) {
     if (y0 ==  y1 && y0 ==  y2)
         return;
     if (fill) {
@@ -437,11 +437,11 @@ EXPORT void surface_tri(struct surface_t *s, int x0, int y0, int x1, int y1, int
                 GRAPHICS_SWAP(ay, by);
             }
             for (j = ax; j <= bx; ++j)
-                surface_pset(s, j, y0 + i, col);
+                SetPixel(s, j, y0 + i, col);
         }
     } else {
-        surface_line(s, x0, y0, x1, y1, col);
-        surface_line(s, x1, y1, x2, y2, col);
-        surface_line(s, x2, y2, x0, y0, col);
+        DrawLine(s, x0, y0, x1, y1, col);
+        DrawLine(s, x1, y1, x2, y2, col);
+        DrawLine(s, x2, y2, x0, y0, col);
     }
 }

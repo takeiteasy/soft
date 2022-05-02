@@ -44,16 +44,16 @@ if ((x)) { \
 static short keycodes[512];
 static bool keycodes_init = false;
 
-void window_set_parent(struct window_t *s, void *p) {
+void SetWindowUserdata(Window *s, void *p) {
   s->parent = p;
 }
 
-void* window_parent(struct window_t *s) {
+void* GetWindowUserdata(Window *s) {
   return s->parent;
 }
 
 #define X(a, b) void(*a##_cb)b,
-void window_callbacks(XMAP_SCREEN_CB struct window_t *window) {
+void SetWindowCallbacks(XMAP_SCREEN_CB Window *window) {
 #undef X
 #define X(a, b) window->a##_callback = a##_cb;
   XMAP_SCREEN_CB
@@ -61,22 +61,11 @@ void window_callbacks(XMAP_SCREEN_CB struct window_t *window) {
 }
 
 #define X(a, b) \
-void a##_callback(struct window_t *window, void(*a##_cb)b) { \
+void Set##a##Callback(Window *window, void(*a##_cb)b) { \
   window->a##_callback = a##_cb; \
 }
 XMAP_SCREEN_CB
 #undef X
-
-int window_id(struct window_t *s) {
-  return s->id;
-}
-
-void window_size(struct window_t *s, int *w, int *h) {
-  if (w)
-    *w = s->w;
-  if (h)
-    *h = s->h;
-}
 
 #define CBCALL(x, ...) \
   if (e_window && e_window->x) \
@@ -92,7 +81,7 @@ void window_size(struct window_t *s, int *w, int *h) {
 #define WARN(exp) ("WARNING: " exp)
 #endif
 
-#define WINDOW_ERROR(A, ...) window_error((A), __FILE__, __FUNCTION__, __LINE__, __VA_ARGS__)
+#define WINDOW_ERROR(A, ...) ThrowWindowError((A), __FILE__, __FUNCTION__, __LINE__, __VA_ARGS__)
 
 #define LINKEDLIST(NAME, TYPE) \
 struct NAME##_node_t { \
@@ -128,13 +117,13 @@ struct NAME##_node_t* NAME##_pop(struct NAME##_node_t *head, TYPE *data) { \
   return head; \
 }
 
-static void(*__error_callback)(enum window_error, const char*, const char*, const char*, int) = NULL;
+static void(*__error_callback)(WindowError, const char*, const char*, const char*, int) = NULL;
 
-void window_error_callback(void(*cb)(enum window_error, const char*, const char*, const char*, int)) {
+void SetWindowErrorCallback(void(*cb)(WindowError, const char*, const char*, const char*, int)) {
   __error_callback = cb;
 }
 
-void window_error(enum window_error type, const char *file, const char *func, int line, const char *msg, ...) {
+static void ThrowWindowError(WindowError type, const char *file, const char *func, int line, const char *msg, ...) {
   va_list args;
   va_start(args, msg);
   static char error[1024];

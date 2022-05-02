@@ -132,7 +132,7 @@ int rgba_a(int c, unsigned char a);
  * @typedef colours
  * @brief A list of colours with names
  */
-enum colour {
+typedef enum {
     BLACK = -16777216,
     BLUE = -16776961,
     CYAN = -16711681,
@@ -271,18 +271,18 @@ enum colour {
     WHEAT = -663885,
     WHITE_SMOKE = -657931,
     YELLOW_GREEN = -6632142
-};
+} Colour;
 
 /*!
- * @typedef surface_t
+ * @typedef Surface
  * @brief An object to hold image data
  * @constant buf Buffer holding pixel data
  * @constant w Width of image
  * @constant h Height of image
  */
-struct surface_t {
+typedef struct {
     int *buf, w, h;
-};
+} Surface;
 
 /*!
  * @discussion Create a new surface
@@ -291,19 +291,19 @@ struct surface_t {
  * @param h Height of new surface
  * @return Boolean for success
  */
-bool surface_create(struct surface_t* s, unsigned int w, unsigned int h);
+bool NewSurface(Surface* s, unsigned int w, unsigned int h);
 /*!
  * @discussion Destroy a surface
  * @param s Pointer to pointer to surface object
  */
-void surface_destroy(struct surface_t* s);
+void DestroySurface(Surface* s);
 
 /*!
  * @discussion Fill a surface with a given colour
  * @param s Surface object
  * @param col Colour to set
  */
-void surface_fill(struct surface_t* s, int col);
+void Fill(Surface* s, int col);
 /*!
  * @discussion Flood portion of surface with given colour
  * @param s Surface object
@@ -311,12 +311,12 @@ void surface_fill(struct surface_t* s, int col);
  * @param y Y position
  * @param col Colour to set
  */
-void surface_flood(struct surface_t* s, int x, int y, int col);
+void Flood(Surface* s, int x, int y, int col);
 /*!
  * @discussion Clear a surface, zero the buffer
  * @param s Surface object
  */
-void surface_cls(struct surface_t* s);
+void Clear(Surface* s);
 /*!
  * @discussion Set surface pixel colour
  * @param s Surface object
@@ -324,7 +324,7 @@ void surface_cls(struct surface_t* s);
  * @param y Y position
  * @param col Colour to set
  */
-void surface_pset(struct surface_t *s, int x, int y, int col);
+void SetPixel(Surface *s, int x, int y, int col);
 /*!
  * @discussion Get surface pixel colour
  * @param s Surface object
@@ -332,7 +332,7 @@ void surface_pset(struct surface_t *s, int x, int y, int col);
  * @param y Y position
  * @return Pixel colour
  */
-int surface_pget(struct surface_t *s, int x, int y);
+int GetPixel(Surface *s, int x, int y);
 /*!
  * @discussion Blit one surface onto another at point
  * @param dst Surface to blit to
@@ -341,7 +341,7 @@ int surface_pget(struct surface_t *s, int x, int y);
  * @param y Y position
  * @return Boolean of success
  */
-bool surface_paste(struct surface_t *dst, struct surface_t *src, int x, int y);
+bool Paste(Surface *dst, Surface *src, int x, int y);
 /*!
  * @discussion Blit one surface onto another at point with clipping rect
  * @param dst Surface to blit to
@@ -354,7 +354,7 @@ bool surface_paste(struct surface_t *dst, struct surface_t *src, int x, int y);
  * @param rh Clip rect height
  * @return Boolean of success
  */
-bool surface_clip_paste(struct surface_t *dst, struct surface_t *src, int x, int y, int rx, int ry, int rw, int rh);
+bool PasteClip(Surface *dst, Surface *src, int x, int y, int rx, int ry, int rw, int rh);
 /*!
  * @discussion Reallocate a surface
  * @param s Surface object
@@ -362,20 +362,20 @@ bool surface_clip_paste(struct surface_t *dst, struct surface_t *src, int x, int
  * @param nh New height
  * @return Boolean of success
  */
-bool surface_reset(struct surface_t *s, int nw, int nh);
+bool Reset(Surface *s, int nw, int nh);
 /*!
  * @discussion Create a copy of a surface
  * @param a Original surface object
  * @param b New surface object to be allocated
  * @return Boolean of success
  */
-bool surface_copy(struct surface_t *a, struct surface_t *b);
+bool Copy(Surface *a, Surface *b);
 /*!
  * @discussion Loop through each pixel of surface and run position and colour through a callback. Return value of the callback is the new colour at the position
  * @param s Surface object
  * @param fn Callback function
  */
-void surface_passthru(struct surface_t *s, int(*fn)(int x, int y, int col));
+void Passthru(Surface *s, int(*fn)(int x, int y, int col));
 /*!
  * @discussion Resize (and scale) surface to given size
  * @param a Original surface object
@@ -384,7 +384,7 @@ void surface_passthru(struct surface_t *s, int(*fn)(int x, int y, int col));
  * @param b New surface object to be allocated
  * @return Boolean of success
  */
-bool surface_resize(struct surface_t *a, int nw, int nh, struct surface_t *b);
+bool Resize(Surface *a, int nw, int nh, Surface *b);
 /*!
  * @discussion Rotate a surface by a given degree
  * @param a Original surface object
@@ -392,7 +392,7 @@ bool surface_resize(struct surface_t *a, int nw, int nh, struct surface_t *b);
  * @param b New surface object to be allocated
  * @return Boolean of success
  */
-bool surface_rotate(struct surface_t *a, float angle, struct surface_t *b);
+bool Rotate(Surface *a, float angle, Surface *b);
 
 /*!
  * @discussion Simple Bresenham line
@@ -403,7 +403,7 @@ bool surface_rotate(struct surface_t *a, float angle, struct surface_t *b);
  * @param y1 Vector B Y position
  * @param col Colour of line
  */
-void surface_line(struct surface_t *s, int x0, int y0, int x1, int y1, int col);
+void DrawLine(Surface *s, int x0, int y0, int x1, int y1, int col);
 /*!
  * @discussion Draw a circle
  * @param s Surface object
@@ -413,7 +413,7 @@ void surface_line(struct surface_t *s, int x0, int y0, int x1, int y1, int col);
  * @param col Colour of cricle
  * @param fill Fill circle boolean
  */
-void surface_circle(struct surface_t *s, int xc, int yc, int r, int col, bool fill);
+void DrawCircle(Surface *s, int xc, int yc, int r, int col, bool fill);
 /*!
  * @discussion Draw a rectangle
  * @param x X position
@@ -423,7 +423,7 @@ void surface_circle(struct surface_t *s, int xc, int yc, int r, int col, bool fi
  * @param col Colour of rectangle
  * @param fill Fill rectangle boolean
  */
-void surface_rect(struct surface_t *s, int x, int y, int w, int h, int col, bool fill);
+void DrawRect(Surface *s, int x, int y, int w, int h, int col, bool fill);
 /*!
  * @discussion Draw a triangle
  * @param s Surface object
@@ -436,7 +436,7 @@ void surface_rect(struct surface_t *s, int x, int y, int w, int h, int col, bool
  * @param col Colour of line
  * @param fill Fill triangle boolean
  */
-void surface_tri(struct surface_t *s, int x0, int y0, int x1, int y1, int x2, int y2, int col, bool fill);
+void DrawTri(Surface *s, int x0, int y0, int x1, int y1, int x2, int y2, int col, bool fill);
 
 #if defined(__cplusplus)
 }

@@ -1,18 +1,19 @@
 # soft
 Simple to use software rendering library with Window handling for multiple platforms.
 
-**NOTE**: While a few platforms are _supported_, the main platform is actually Mac (since that is what I used). The other platforms are somewhat less tested.
+**NOTE**: While a few platforms are _supported_, the main platform is actually Mac (since that is what I used). The other platforms are somewhat less tested. In fact, they probably won't build for the moment.
 
 ## TODO (no order)
 - [X] ~~Implement backend for Mac~~
 - [X] ~~Implement backend for Windows~~
 - [X] ~~Implement backend for Emscripten~~
+- [ ] Update Windows, X11 and HTML backends
 - [ ] Implement backend for X11
 - [ ] Implement backend for RPi
 - [ ] Implement backend for Wayland
 - [ ] Implement backend for Sixel
 - [ ] Implement backend for BSD
-- [ ] Major API refactor (inconsistent naming)
+- [X] ~~Major API refactor (inconsistent naming)~~
 - [ ] Language bindings (include/soft.i placeholder)
 - [ ] Make Makefile
 - [ ] Make some tests
