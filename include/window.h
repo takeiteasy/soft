@@ -222,10 +222,10 @@ typedef enum {
 } Mod;
 
 #define XMAP_SCREEN_CB                                         \
-    X(Keyboard, (void *, Key, Button, bool))    \
-    X(MouseButton, (void *, Button, Button, bool)) \
+    X(Keyboard, (void *, Key, Mod, bool))    \
+    X(MouseButton, (void *, Button, Mod, bool)) \
     X(MouseMove, (void *, int, int, int, int))                \
-    X(Scroll, (void *, Button, float, float))            \
+    X(Scroll, (void *, Mod, float, float))            \
     X(Focus, (void *, bool))                                   \
     X(Resize, (void *, int, int))                              \
     X(Closed, (void *))
