@@ -50,7 +50,12 @@ extern "C" {
  * @discussion High precision timer
  * @return Number of CPU ticks
  */
-unsigned long long ticks(void);
+unsigned long long TimerTicks(void);
+/*!
+ * @discussion High precision timer frequency
+ * @return Frequency of high precision timer
+ */
+unsigned long long TimerFrequency(void);
 
 /*!
  * @typedef Button

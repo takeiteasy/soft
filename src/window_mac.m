@@ -27,6 +27,23 @@
 
 #include "window-private.c"
 #include <Cocoa/Cocoa.h>
+#include <mach/mach_time.h>
+
+unsigned long long TimerTicks(void) {
+    return mach_absolute_time();
+}
+
+static bool timerInit = false;
+unsigned long long TimerFrequency(void) {
+    static long long freq = 0; 
+    if (!timerInit) {
+        mach_timebase_info_data_t info;
+        mach_timebase_info(&info);
+        freq= (info.denom * 1e9) / info.numer;
+        timerInit = true;
+    }
+    return freq; 
+}
 
 #if MAC_OS_X_VERSION_MAX_ALLOWED < MAC_OS_X_VERSION_10_12
 #define NSWindowStyleMaskBorderless NSBorderlessWindowMask
