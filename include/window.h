@@ -293,7 +293,7 @@ typedef enum {
  * @brief A list of window flag options
  */
 typedef enum {
-  NONE = 0,
+  DEFAULT_FLAGS = 0,
   RESIZABLE = 0x01,
   FULLSCREEN = 0x02,
   FULLSCREEN_DESKTOP = 0x04,
