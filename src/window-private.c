@@ -9,7 +9,7 @@
 #if !defined(WINDOW_WINDOWS)
 #include <unistd.h>
 #endif
-  
+
 #if defined(__gnu_linux__) || defined(__linux__) || defined(__unix__)
 #define WINDOW_LINUX
 #elif defined(macintosh) || defined(Macintosh) || (defined(__APPLE__) && defined(__MACH__))
@@ -25,51 +25,54 @@
 #else
 #error "Must define all or none of WINDOW_MALLOC, WINDOW_FREE, and WINDOW_REALLOC (or WINDOW_REALLOC_SIZED)."
 #endif
-  
+
 #if defined(DEBUG) && !defined(WINDOW_DEBUG)
 #define WINDOW_DEBUG
 #endif
 
 #if !defined(WINDOW_MALLOC)
-#define WINDOW_MALLOC(sz)       malloc(sz)
-#define WINDOW_REALLOC(p,newsz) realloc(p,newsz)
-#define WINDOW_FREE(p)          free(p)
+#define WINDOW_MALLOC(sz) malloc(sz)
+#define WINDOW_REALLOC(p, newsz) realloc(p, newsz)
+#define WINDOW_FREE(p) free(p)
 #endif
 #define WINDOW_SAFE_FREE(x) \
-if ((x)) { \
-  free((void*)(x)); \
-  (x) = NULL; \
-}
+    if ((x)) {              \
+        free((void *)(x));  \
+        (x) = NULL;         \
+    }
 
 static short keycodes[512];
 static bool keycodes_init = false;
 
 void SetWindowUserdata(Window *s, void *p) {
-  s->parent = p;
+    s->parent = p;
 }
 
-void* GetWindowUserdata(Window *s) {
-  return s->parent;
+void *GetWindowUserdata(Window *s) {
+    return s->parent;
 }
 
-#define X(a, b) void(*a##_cb)b,
+#define X(a, b) void(*a##_cb) b,
 void SetWindowCallbacks(XMAP_SCREEN_CB Window *window) {
 #undef X
 #define X(a, b) window->a##_callback = a##_cb;
-  XMAP_SCREEN_CB
+    XMAP_SCREEN_CB
 #undef X
 }
 
-#define X(a, b) \
-void Set##a##Callback(Window *window, void(*a##_cb)b) { \
-  window->a##_callback = a##_cb; \
-}
+#define X(a, b)                                            \
+    void Set##a##Callback(Window *window, void(*a##_cb) b) \
+    {                                                      \
+        window->a##_callback = a##_cb;                     \
+    }
 XMAP_SCREEN_CB
 #undef X
 
-#define CBCALL(x, ...) \
-  if (e_window && e_window->x) \
-    e_window->x(e_window->parent, __VA_ARGS__);
+#define CBCALL(x, ...)                                  \
+    do {                                                \
+        if (e_window && e_window->x)                    \
+            e_window->x(e_window->parent, __VA_ARGS__); \
+    } while (0)
 
 // Taken from: https://stackoverflow.com/a/1911632
 #if _MSC_VER
@@ -83,58 +86,58 @@ XMAP_SCREEN_CB
 
 #define WINDOW_ERROR(A, ...) ThrowWindowError((A), __FILE__, __FUNCTION__, __LINE__, __VA_ARGS__)
 
-#define LINKEDLIST(NAME, TYPE) \
-struct NAME##_node_t { \
-  TYPE *data; \
-  struct NAME##_node_t *next; \
-}; \
-struct NAME##_node_t* NAME##_push(struct NAME##_node_t *head, TYPE *data) { \
-  struct NAME##_node_t *ret = WINDOW_MALLOC(sizeof(struct NAME##_node_t)); \
-  if (!ret) \
-    return NULL; \
-  ret->data = data; \
-  ret->next = head; \
-  return ret; \
-} \
-struct NAME##_node_t* NAME##_pop(struct NAME##_node_t *head, TYPE *data) { \
-  struct NAME##_node_t *cursor = head, *prev = NULL; \
-  while (cursor) { \
-    if (cursor->data != data) { \
-      prev = cursor; \
-      cursor = cursor->next; \
-      continue; \
-    } \
-    if (!prev) \
-      head = cursor->next; \
-    else \
-      prev->next = cursor->next; \
-    break; \
-  } \
-  if (cursor) { \
-    cursor->next = NULL; \
-    WINDOW_FREE(cursor); \
-  } \
-  return head; \
-}
+#define LINKEDLIST(NAME, TYPE)                                                   \
+    struct NAME##_node_t {                                                       \
+        TYPE *data;                                                              \
+        struct NAME##_node_t *next;                                              \
+    };                                                                           \
+    struct NAME##_node_t *NAME##_push(struct NAME##_node_t *head, TYPE *data) {  \
+        struct NAME##_node_t *ret = WINDOW_MALLOC(sizeof(struct NAME##_node_t)); \
+        if (!ret)                                                                \
+            return NULL;                                                         \
+        ret->data = data;                                                        \
+        ret->next = head;                                                        \
+        return ret;                                                              \
+    }                                                                            \
+    struct NAME##_node_t *NAME##_pop(struct NAME##_node_t *head, TYPE *data) {   \
+        struct NAME##_node_t *cursor = head, *prev = NULL;                       \
+        while (cursor) {                                                         \
+            if (cursor->data != data) {                                          \
+                prev = cursor;                                                   \
+                cursor = cursor->next;                                           \
+                continue;                                                        \
+            }                                                                    \
+            if (!prev)                                                           \
+                head = cursor->next;                                             \
+            else                                                                 \
+                prev->next = cursor->next;                                       \
+            break;                                                               \
+        }                                                                        \
+        if (cursor) {                                                            \
+            cursor->next = NULL;                                                 \
+            WINDOW_FREE(cursor);                                                 \
+        }                                                                        \
+        return head;                                                             \
+    }
 
-static void(*__error_callback)(WindowError, const char*, const char*, const char*, int) = NULL;
+static void (*__error_callback)(WindowError, const char *, const char *, const char *, int) = NULL;
 
-void SetWindowErrorCallback(void(*cb)(WindowError, const char*, const char*, const char*, int)) {
-  __error_callback = cb;
+void SetWindowErrorCallback(void (*cb)(WindowError, const char *, const char *, const char *, int)) {
+    __error_callback = cb;
 }
 
 static void ThrowWindowError(WindowError type, const char *file, const char *func, int line, const char *msg, ...) {
-  va_list args;
-  va_start(args, msg);
-  static char error[1024];
-  vsprintf((char*)error, msg, args);
-  va_end(args);
-  
+    va_list args;
+    va_start(args, msg);
+    static char error[1024];
+    vsprintf((char *)error, msg, args);
+    va_end(args);
+
 #if defined(WINDOW_DEBUG)
-  fprintf(stderr, "[%d] from %s in %s() at %d -- %s\n", type, file, func, line, error);
+    fprintf(stderr, "[%d] from %s in %s() at %d -- %s\n", type, file, func, line, error);
 #endif
-  if (__error_callback) {
-    __error_callback(type, (const char*)error, __FILE__, __FUNCTION__, __LINE__);
-    return;
-  }
+    if (__error_callback) {
+        __error_callback(type, (const char *)error, __FILE__, __FUNCTION__, __LINE__);
+        return;
+    }
 }
