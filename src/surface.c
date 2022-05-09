@@ -229,7 +229,7 @@ EXPORT void Passthru(Surface *s, int (*fn)(int x, int y, int col)) {
             s->buf[y * s->w + x] = fn(x, y, GetPixel(s, x, y));
 }
 
-EXPORT bool Resize(Surface *a, int nw, int nh, Surface *b) {
+EXPORT bool Scale(Surface *a, int nw, int nh, Surface *b) {
     if (!NewSurface(b, nw, nh))
         return false;
     

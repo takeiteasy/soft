@@ -377,14 +377,14 @@ bool Copy(Surface *a, Surface *b);
  */
 void Passthru(Surface *s, int(*fn)(int x, int y, int col));
 /*!
- * @discussion Resize (and scale) surface to given size
+ * @discussion Scale surface to given size
  * @param a Original surface object
  * @param nw New width
  * @param nh New height
  * @param b New surface object to be allocated
  * @return Boolean of success
  */
-bool Resize(Surface *a, int nw, int nh, Surface *b);
+bool Scale(Surface *a, int nw, int nh, Surface *b);
 /*!
  * @discussion Rotate a surface by a given degree
  * @param a Original surface object
