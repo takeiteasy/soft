@@ -662,11 +662,11 @@ bool AreAllWindowsClosed() {
   return windows == NULL;
 }
 
-void ToggleCursorLock(Window *s, bool locked) {
+void SetCursorLock(Window *s, bool locked) {
   return;
 }
 
-void ToggleCursorVisiblity(Window *s, bool shown) {
+void SetCursorVisiblity(Window *s, bool shown) {
   [[(AppDelegate*)s->window view] setCursorVisibility:shown];
 }
 

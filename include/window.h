@@ -365,12 +365,12 @@ bool AreAllWindowsClosed(void);
  * @discussion Lock or unlock cursor movement to active window
  * @param locked Turn on or off
  */
-void ToggleCursorLock(Window *s, bool locked);
+void SetCursorLock(Window *s, bool locked);
 /*!
  * @discussion Hide or show system cursor
  * @param show Hide or show
  */
-void ToggleCursorVisiblity(Window *s, bool show);
+void SetCursorVisiblity(Window *s, bool show);
 /*!
  * @discussion Change cursor icon to system icon
  * @param s Window object
