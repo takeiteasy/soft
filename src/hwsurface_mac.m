@@ -1,43 +1,33 @@
 
 #include "hwsurface_private.c"
 
-@interface GLContext : NSView {
-    NSOpenGLContext *ctx;
-    NSOpenGLPixelFormat *fmt;
-}
+@interface GLContext : NSOpenGLView
 -(id)initWithWidth:(int)w andHeight:(int)h;
 -(void)dealloc;
 @end
 
 @implementation GLContext
 -(id)initWithWidth:(int)w andHeight:(int)h {
-    self = [super initWithFrame:(NSRect) { 0, 0, w, h }];
-    if (self) {
-        NSOpenGLPixelFormatAttribute attribs[] = {
-            NSOpenGLPFADoubleBuffer,
-            NSOpenGLPFAAccelerated,
-            NSOpenGLPFABackingStore, YES,
-            NSOpenGLPFAColorSize, 24,
-            NSOpenGLPFADepthSize, 24,
-            NSOpenGLPFAAlphaSize, 8,
-            NSOpenGLPFAOpenGLProfile,
-            NSOpenGLProfileVersion3_2Core,
-            0
-        };
-        fmt = [[NSOpenGLPixelFormat alloc] initWithAttributes:attribs];
-        ctx = [[NSOpenGLContext alloc] initWithFormat:fmt
-                                         shareContext:nil];
-        [ctx setView:self];
-        [ctx makeCurrentContext];
-    }
+    NSOpenGLPixelFormatAttribute attribs[] = {
+        NSOpenGLPFADoubleBuffer,
+        NSOpenGLPFAAccelerated,
+        NSOpenGLPFABackingStore, YES,
+        NSOpenGLPFAColorSize, 24,
+        NSOpenGLPFADepthSize, 24,
+        NSOpenGLPFAAlphaSize, 8,
+        NSOpenGLPFAOpenGLProfile,
+        NSOpenGLProfileVersion3_2Core,
+        0
+    };
+    NSOpenGLPixelFormat *fmt = [[NSOpenGLPixelFormat alloc] initWithAttributes:attribs];
+    self = [super initWithFrame:(NSRect) { 0, 0, w, h } pixelFormat:fmt];
+    [[self openGLContext] makeCurrentContext];
     return self;
 }
 
 -(void)dealloc {
     [NSOpenGLContext clearCurrentContext];
-    [ctx clearDrawable];
-    [fmt dealloc];
-    [ctx dealloc];
+    [[self openGLContext] clearDrawable];
     [super dealloc];
 }
 @end
