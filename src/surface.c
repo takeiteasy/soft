@@ -167,7 +167,7 @@ EXPORT void Clear(Surface *s) {
 
 #define BLEND(c0, c1, a0, a1) (c0 * a0 / 255) + (c1 * a1 * (255 - a0) / 65025)
 
-EXPORT void SetPixel(Surface *s, int x, int y, int c) {
+EXPORT void BlendPixel(Surface *s, int x, int y, int c) {
     unsigned char a = a_channel(c);
     if (!a || x < 0 || y < 0 || x >= s->w || y >= s->h)
         return;
@@ -177,6 +177,11 @@ EXPORT void SetPixel(Surface *s, int x, int y, int c) {
                                      BLEND(g_channel(c), g_channel(*p), a, b),
                                      BLEND(b_channel(c), b_channel(*p), a, b),
                                      a + (b * (255 - a) >> 8));
+}
+
+EXPORT void SetPixel(Surface *s, int x, int y, int col) {
+    if (x >= 0 && y >= 0 && x < s->w && y < s->h)
+        s->buf[y * s->w + x] = col;
 }
 
 EXPORT int GetPixel(Surface *s, int x, int y) {
@@ -190,7 +195,7 @@ EXPORT bool Paste(Surface *dst, Surface *src, int x, int y) {
             if (oy > dst->h)
                 break;
             c = GetPixel(src, ox, oy);
-            SetPixel(dst, x + ox, y + oy, c);
+            BlendPixel(dst, x + ox, y + oy, c);
         }
         if (ox > dst->w)
             break;
@@ -201,7 +206,7 @@ EXPORT bool Paste(Surface *dst, Surface *src, int x, int y) {
 EXPORT bool PasteClip(Surface *dst, Surface *src, int x, int y, int rx, int ry, int rw, int rh) {
     for (int ox = 0; ox < rw; ++ox)
         for (int oy = 0; oy < rh; ++oy)
-            SetPixel(dst, ox + x, oy + y, GetPixel(src, ox + rx, oy + ry));
+            BlendPixel(dst, ox + x, oy + y, GetPixel(src, ox + rx, oy + ry));
     return true;
 }
 
@@ -287,7 +292,7 @@ EXPORT bool Rotate(Surface *a, float angle, Surface *b) {
             sy = ((y + mm[0][1]) * c - (x + mm[0][0]) * s);
             if (sx < 0 || sx >= a->w || sy < 0 || sy >= a->h)
                 continue;
-            SetPixel(b, x, y, GetPixel(a, sx, sy));
+            BlendPixel(b, x, y, GetPixel(a, sx, sy));
         }
     return true;
 }
@@ -308,7 +313,7 @@ static inline void vline(Surface *s, int x, int y0, int y1, int col) {
         y1 = s->h - 1;
     
     for(int y = y0; y <= y1; y++)
-        SetPixel(s, x, y, col);
+        BlendPixel(s, x, y, col);
 }
 
 static inline void hline(Surface *s, int y, int x0, int x1, int col) {
@@ -327,7 +332,7 @@ static inline void hline(Surface *s, int y, int x0, int x1, int col) {
         x1 = s->w - 1;
     
     for(int x = x0; x <= x1; x++)
-        SetPixel(s, x, y, col);
+        BlendPixel(s, x, y, col);
 }
 
 EXPORT void DrawLine(Surface *s, int x0, int y0, int x1, int y1, int col) {
@@ -339,7 +344,7 @@ EXPORT void DrawLine(Surface *s, int x0, int y0, int x1, int y1, int col) {
     int dy = abs(y1 - y0), sy = y0 < y1 ? 1 : -1;
     int err = (dx > dy ? dx : -dy) / 2;
     
-    while (SetPixel(s, x0, y0, col), x0 != x1 || y0 != y1) {
+    while (BlendPixel(s, x0, y0, col), x0 != x1 || y0 != y1) {
         int e2 = err;
         if (e2 > -dx) { err -= dy; x0 += sx; }
         if (e2 <  dy) { err += dx; y0 += sy; }
@@ -349,10 +354,10 @@ EXPORT void DrawLine(Surface *s, int x0, int y0, int x1, int y1, int col) {
 EXPORT void DrawCircle(Surface *s, int xc, int yc, int r, int col, bool fill) {
     int x = -r, y = 0, err = 2 - 2 * r; /* II. Quadrant */
     do {
-        SetPixel(s, xc - x, yc + y, col);    /*   I. Quadrant */
-        SetPixel(s, xc - y, yc - x, col);    /*  II. Quadrant */
-        SetPixel(s, xc + x, yc - y, col);    /* III. Quadrant */
-        SetPixel(s, xc + y, yc + x, col);    /*  IV. Quadrant */
+        BlendPixel(s, xc - x, yc + y, col);    /*   I. Quadrant */
+        BlendPixel(s, xc - y, yc - x, col);    /*  II. Quadrant */
+        BlendPixel(s, xc + x, yc - y, col);    /* III. Quadrant */
+        BlendPixel(s, xc + y, yc + x, col);    /*  IV. Quadrant */
         
         if (fill) {
             hline(s, yc - y, xc - x, xc + x, col);
@@ -437,7 +442,7 @@ EXPORT void DrawTri(Surface *s, int x0, int y0, int x1, int y1, int x2, int y2, 
                 GRAPHICS_SWAP(ay, by);
             }
             for (j = ax; j <= bx; ++j)
-                SetPixel(s, j, y0 + i, col);
+                BlendPixel(s, j, y0 + i, col);
         }
     } else {
         DrawLine(s, x0, y0, x1, y1, col);

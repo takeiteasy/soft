@@ -11,7 +11,7 @@
 
 @implementation GLContext
 -(id)initWithWidth:(int)w andHeight:(int)h {
-    self = [super initWithFrame:(NSRect) { 0, 0, w, h }];
+    self = [super initWithFrame:(NSRect) {{0,0},{w,h}}];
     if (self) {
         NSOpenGLPixelFormatAttribute attribs[] = {
             NSOpenGLPFADoubleBuffer,

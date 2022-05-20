@@ -324,6 +324,14 @@ void Clear(Surface* s);
  * @param y Y position
  * @param col Colour to set
  */
+void BlendPixel(Surface *s, int x, int y, int col);
+/*!
+ * @discussion Set surface pixel colour (without blending)
+ * @param s Surface object
+ * @param x X position
+ * @param y Y position
+ * @param col Colour to set
+ */
 void SetPixel(Surface *s, int x, int y, int col);
 /*!
  * @discussion Get surface pixel colour

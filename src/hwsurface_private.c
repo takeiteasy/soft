@@ -134,12 +134,13 @@ int NewShaderFromFiles(const char *vertexPath, const char *fragmentPath) {
     int result = 0;
     const char *vertexSrc = LoadFileToMemory(vertexPath);
     if (!vertexSrc)
-        goto EXIT;
+        return result;
     const char *fragmentSrc = LoadFileToMemory(fragmentPath);
-    if (!fragmentSrc)
-        goto EXIT;
+    if (!fragmentSrc) {
+        free((void*)vertexSrc);
+        return result;
+    }
     result = NewShader(vertexSrc, fragmentSrc);
-EXIT:
     if (vertexSrc)
         free((void*)vertexSrc);
     if (fragmentSrc)
