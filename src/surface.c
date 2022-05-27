@@ -105,7 +105,7 @@ EXPORT void DestroySurface(Surface *s) {
     memset(s, 0, sizeof(Surface));
 }
 
-EXPORT void Fill(Surface *s, int col) {
+EXPORT void FillSurface(Surface *s, int col) {
     for (int i = 0; i < s->w * s->h; ++i)
         s->buf[i] = col;
 }
@@ -155,13 +155,13 @@ static inline void flood_fn(Surface *s, int x, int y, int new, int old) {
     }
 }
 
-EXPORT void Flood(Surface *s, int x, int y, int col) {
+EXPORT void FloodSurface(Surface *s, int x, int y, int col) {
     if (x < 0 || y < 0 || x >= s->w || y >= s->h)
         return;
     flood_fn(s, x, y, col, GetPixel(s, x, y));
 }
 
-EXPORT void Clear(Surface *s) {
+EXPORT void ClearSurface(Surface *s) {
     memset(s->buf, 0, s->w * s->h * sizeof(int));
 }
 
@@ -188,7 +188,7 @@ EXPORT int GetPixel(Surface *s, int x, int y) {
     return (x >= 0 && y >= 0 && x < s->w && y < s->h) ? s->buf[y * s->w + x] : 0;
 }
 
-EXPORT bool Paste(Surface *dst, Surface *src, int x, int y) {
+EXPORT bool PasteSurface(Surface *dst, Surface *src, int x, int y) {
     int ox, oy, c;
     for (ox = 0; ox < src->w; ++ox) {
         for (oy = 0; oy < src->h; ++oy) {
@@ -203,14 +203,14 @@ EXPORT bool Paste(Surface *dst, Surface *src, int x, int y) {
     return true;
 }
 
-EXPORT bool PasteClip(Surface *dst, Surface *src, int x, int y, int rx, int ry, int rw, int rh) {
+EXPORT bool PasteSurfaceClip(Surface *dst, Surface *src, int x, int y, int rx, int ry, int rw, int rh) {
     for (int ox = 0; ox < rw; ++ox)
         for (int oy = 0; oy < rh; ++oy)
             BlendPixel(dst, ox + x, oy + y, GetPixel(src, ox + rx, oy + ry));
     return true;
 }
 
-EXPORT bool Reset(Surface *s, int nw, int nh) {
+EXPORT bool ReuseSurface(Surface *s, int nw, int nh) {
     size_t sz = nw * nh * sizeof(unsigned int) + 1;
     int *tmp = realloc(s->buf, sz);
     s->buf = tmp;
@@ -220,21 +220,21 @@ EXPORT bool Reset(Surface *s, int nw, int nh) {
     return true;
 }
 
-EXPORT bool Copy(Surface *a, Surface *b) {
+EXPORT bool CopySurface(Surface *a, Surface *b) {
     if (!NewSurface(b, a->w, a->h))
         return false;
     memcpy(b->buf, a->buf, a->w * a->h * sizeof(unsigned int) + 1);
     return !!b->buf;
 }
 
-EXPORT void Passthru(Surface *s, int (*fn)(int x, int y, int col)) {
+EXPORT void PassthruSurface(Surface *s, int (*fn)(int x, int y, int col)) {
     int x, y;
     for (x = 0; x < s->w; ++x)
         for (y = 0; y < s->h; ++y)
             s->buf[y * s->w + x] = fn(x, y, GetPixel(s, x, y));
 }
 
-EXPORT bool Scale(Surface *a, int nw, int nh, Surface *b) {
+EXPORT bool ScaleSurface(Surface *a, int nw, int nh, Surface *b) {
     if (!NewSurface(b, nw, nh))
         return false;
     
@@ -263,7 +263,7 @@ EXPORT bool Scale(Surface *a, int nw, int nh, Surface *b) {
 #define __D2R(a) ((a) * __PI / 180.0)
 #define __R2D(a) ((a) * 180.0 / __PI)
 
-EXPORT bool Rotate(Surface *a, float angle, Surface *b) {
+EXPORT bool RotateSurface(Surface *a, float angle, Surface *b) {
     float theta = __D2R(angle);
     float c = cosf(theta), s = sinf(theta);
     float r[3][2] = {

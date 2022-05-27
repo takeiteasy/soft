@@ -1,6 +1,6 @@
 #include "hwsurface.h"
-#import <Cocoa/Cocoa.h>
-#import <OpenGL/gl3.h>
+#include <Cocoa/Cocoa.h>
+#include <OpenGL/gl3.h>
 
 #define MAX_SAMPLERS 8
 

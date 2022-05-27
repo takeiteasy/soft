@@ -303,7 +303,7 @@ void DestroySurface(Surface* s);
  * @param s Surface object
  * @param col Colour to set
  */
-void Fill(Surface* s, int col);
+void FillSurface(Surface* s, int col);
 /*!
  * @discussion Flood portion of surface with given colour
  * @param s Surface object
@@ -311,12 +311,12 @@ void Fill(Surface* s, int col);
  * @param y Y position
  * @param col Colour to set
  */
-void Flood(Surface* s, int x, int y, int col);
+void FloodSurface(Surface* s, int x, int y, int col);
 /*!
  * @discussion Clear a surface, zero the buffer
  * @param s Surface object
  */
-void Clear(Surface* s);
+void ClearSurface(Surface *s);
 /*!
  * @discussion Set surface pixel colour
  * @param s Surface object
@@ -349,7 +349,7 @@ int GetPixel(Surface *s, int x, int y);
  * @param y Y position
  * @return Boolean of success
  */
-bool Paste(Surface *dst, Surface *src, int x, int y);
+bool PasteSurface(Surface *dst, Surface *src, int x, int y);
 /*!
  * @discussion Blit one surface onto another at point with clipping rect
  * @param dst Surface to blit to
@@ -362,7 +362,7 @@ bool Paste(Surface *dst, Surface *src, int x, int y);
  * @param rh Clip rect height
  * @return Boolean of success
  */
-bool PasteClip(Surface *dst, Surface *src, int x, int y, int rx, int ry, int rw, int rh);
+bool PasteSurfaceClip(Surface *dst, Surface *src, int x, int y, int rx, int ry, int rw, int rh);
 /*!
  * @discussion Reallocate a surface
  * @param s Surface object
@@ -370,20 +370,20 @@ bool PasteClip(Surface *dst, Surface *src, int x, int y, int rx, int ry, int rw,
  * @param nh New height
  * @return Boolean of success
  */
-bool Reset(Surface *s, int nw, int nh);
+bool ReuseSurface(Surface *s, int nw, int nh);
 /*!
  * @discussion Create a copy of a surface
  * @param a Original surface object
  * @param b New surface object to be allocated
  * @return Boolean of success
  */
-bool Copy(Surface *a, Surface *b);
+bool CopySurface(Surface *a, Surface *b);
 /*!
  * @discussion Loop through each pixel of surface and run position and colour through a callback. Return value of the callback is the new colour at the position
  * @param s Surface object
  * @param fn Callback function
  */
-void Passthru(Surface *s, int(*fn)(int x, int y, int col));
+void PassthruSurface(Surface *s, int(*fn)(int x, int y, int col));
 /*!
  * @discussion Scale surface to given size
  * @param a Original surface object
@@ -392,7 +392,7 @@ void Passthru(Surface *s, int(*fn)(int x, int y, int col));
  * @param b New surface object to be allocated
  * @return Boolean of success
  */
-bool Scale(Surface *a, int nw, int nh, Surface *b);
+bool ScaleSurface(Surface *a, int nw, int nh, Surface *b);
 /*!
  * @discussion Rotate a surface by a given degree
  * @param a Original surface object
@@ -400,7 +400,7 @@ bool Scale(Surface *a, int nw, int nh, Surface *b);
  * @param b New surface object to be allocated
  * @return Boolean of success
  */
-bool Rotate(Surface *a, float angle, Surface *b);
+bool RotateSurface(Surface *a, float angle, Surface *b);
 
 /*!
  * @discussion Simple Bresenham line
